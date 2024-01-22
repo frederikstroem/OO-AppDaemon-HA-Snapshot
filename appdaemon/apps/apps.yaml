@@ -1,0 +1,20 @@
+---
+globals:
+  module: globals
+  global: true
+room_hall:
+  module: room_hall
+  class: RoomHall
+  dependencies: globals
+room_lab:
+  module: room_lab
+  class: RoomLab
+  dependencies: globals
+room_roommate:
+  module: room_roommate
+  class: RoomRoommate
+  dependencies: globals
+room_up:
+  module: room_up
+  class: RoomUp
+  dependencies: globals

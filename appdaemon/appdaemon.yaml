@@ -1,0 +1,56 @@
+---
+# https://appdaemon.readthedocs.io/en/latest/CONFIGURE.html
+
+secrets: /homeassistant/secrets.yaml
+appdaemon:
+  latitude: !secret latitude
+  longitude: !secret longitude
+  elevation: !secret elevation
+  time_zone: Europe/Copenhagen
+  plugins:
+    HASS:
+      type: hass
+  production_mode: true # AppDaemon checks for changes in Apps and app config files only on restart.
+http:
+  url: http://127.0.0.1:5050
+admin:
+api:
+hadashboard:
+
+logs:
+  # Defaults.
+  main_log:
+    filename: /homeassistant/logs/appdaemon/appdaemon.log
+    log_generations: 15
+  access_log:
+    filename: /homeassistant/logs/appdaemon/access.log
+    log_generations: 10
+  error_log:
+    filename: /homeassistant/logs/appdaemon/error.log
+    log_generations: 30
+  diag_log:
+    filename: /homeassistant/logs/appdaemon/diag.log
+    log_generations: 5
+    log_size: 1024
+    format: "{asctime} {levelname:<8} {appname:<10}: {message}"
+  # Custom.
+  house_log:
+    name: HouseLog
+    filename: /homeassistant/logs/appdaemon/house.log
+    log_generations: 5
+  lab_log:
+    name: LabLog
+    filename: /homeassistant/logs/appdaemon/lab.log
+    log_generations: 5
+  roommate_log:
+    name: RoommateLog
+    filename: /homeassistant/logs/appdaemon/roommate.log
+    log_generations: 5
+  up_log:
+    name: UpLog
+    filename: /homeassistant/logs/appdaemon/up.log
+    log_generations: 5
+  hall_log:
+    name: HallLog
+    filename: /homeassistant/logs/appdaemon/hall.log
+    log_generations: 5
