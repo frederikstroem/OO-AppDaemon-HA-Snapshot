@@ -14,14 +14,14 @@ class IkeaSwitchActions(Enum):
     BRIGHTNESS_MOVE_DOWN = "brightness_move_down"
 
 class IkeaSwitch(Controller):
-    def __init__(self, api, ha_id, action_map={}):
+    def __init__(self, api, ha_id, flags: set, action_map={}):
         default_action_map = {
             IkeaSwitchActions.ON: self.default_on,
             IkeaSwitchActions.OFF: self.default_off,
             IkeaSwitchActions.BRIGHTNESS_MOVE_DOWN: self.default_brightness_down,
             IkeaSwitchActions.BRIGHTNESS_MOVE_UP: self.default_brightness_up,
         }
-        super().__init__(api, ha_id, IkeaSwitchActions, action_map, default_action_map)
+        super().__init__(api, ha_id, flags, IkeaSwitchActions, action_map, default_action_map)
 
     def default_on(self, ha_id):
         self.room.virtual_light.turn_on()

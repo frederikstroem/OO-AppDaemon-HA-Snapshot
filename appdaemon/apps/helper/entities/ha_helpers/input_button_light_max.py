@@ -3,8 +3,8 @@ from helper.entities.ha_helpers.input_button import InputButton
 
 
 class InputButtonLightMax(InputButton):
-    def __init__(self, api, ha_id: str):
-        super().__init__(api, ha_id, self.callback)
+    def __init__(self, api, ha_id: str, flags: set,):
+        super().__init__(api, ha_id, flags, self.callback)
 
     def callback(self, entity, attribute, old, new, kwargs):
         if new != "" and new != old:

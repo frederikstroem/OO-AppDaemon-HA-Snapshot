@@ -3,8 +3,8 @@ from helper.entity import Entity
 
 
 class Controller(Entity):
-    def __init__(self, api, ha_id: str, actions_enum, action_map, default_action_map=None):
-        super().__init__(api, ha_id)
+    def __init__(self, api, ha_id: str, flags: set, actions_enum, action_map, default_action_map=None):
+        super().__init__(api, ha_id, flags)
         self.actions_enum = actions_enum
         self.action_map = action_map
         self.default_action_map = default_action_map

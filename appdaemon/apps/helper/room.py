@@ -1,5 +1,7 @@
 # /helper/
 from helper.virtual_light import VirtualLight
+# /helper/entities/ha_helpers/
+from helper.entities.ha_helpers.input_boolean_sleep_mode import InputBooleanSleepMode
 
 """
     Room class
@@ -23,6 +25,13 @@ class Room:
     def get_entity_by_ha_id(self, ha_id):
         for entity in self.entities:
             if entity.ha_id == ha_id:
+                return entity
+        return None
+
+    def get_input_boolean_sleep_mode(self):
+        # There should only ever be one sleep mode input boolean per room.
+        for entity in self.entities:
+            if isinstance(entity, InputBooleanSleepMode):
                 return entity
         return None
 

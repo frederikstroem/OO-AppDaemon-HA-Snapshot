@@ -1,5 +1,5 @@
 # OO-AppDaemon-HA-Snapshot
-Snapshot (2024-01-22) of core parts of my object-oriented AppDaemon Home Assistant setup.
+Snapshot (2024-03-30) of core parts of my object-oriented AppDaemon Home Assistant setup.
 
 My self-hosted setup, including this AppDaemon configuration, is constantly evolving, as I regularly experiment with new ideas. I aim to improve my codebases over time; however, I unfortunately lack the time to uphold projects like this to the standard I desire. Therefore, this AppDaemon configuration should not be viewed as a best practice or even a good example of proper AppDaemon usage. It is simply a reflection of my setup at a particular moment in time. Feel free to use it as you wish. 🙂
 

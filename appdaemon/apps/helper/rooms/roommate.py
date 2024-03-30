@@ -8,6 +8,7 @@ from helper.virtual_light import VirtualLight
 from helper.entities.light import Light
 # /helper/entities/controllers/
 from helper.entities.controllers.aqara_smart_home_cube import AqaraSmartHomeCube
+from helper.entities.controllers.ikea_button import IkeaButton
 # /helper/entities/ha_helpers/
 from helper.entities.ha_helpers.input_button_light_max import InputButtonLightMax
 # /helper/entities/lights/
@@ -29,16 +30,24 @@ class Roommate(Room):
             InputButtonLightMax(
                 api,
                 f"input_button.{id}_light_max",
+                set(),
             ),
             # Controllers.
             AqaraSmartHomeCube(
                 api,
                 f"sensor.{id}_controller_cube_action",
+                set(),
+            ),
+            IkeaButton(
+                api,
+                f"sensor.{id}_controller_by_door_action",
+                set(),
             ),
             # Lights.
             IkeaBulb(
                 api,
-                f"light.{id}_light_ceiling"
+                f"light.{id}_light_ceiling",
+                set(),
             ),
         ]
 

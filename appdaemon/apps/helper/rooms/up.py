@@ -33,12 +33,14 @@ class Up(Room):
             # Input buttons.
             InputButtonLightMax(
                 api,
-                f"input_button.{id}_light_max"
+                f"input_button.{id}_light_max",
+                set(),
             ),
             # Sensors.
             IkeaMotionSensor(
                 api,
                 f"binary_sensor.{id}_ir_stairs_occupancy",
+                set(),
                 {
                     IkeaMotionSensorStates.ON: self.event_IkeaMotionSensor_on,
                     IkeaMotionSensorStates.OFF: self.event_IkeaMotionSensor_off,
@@ -48,19 +50,23 @@ class Up(Room):
             AqaraSmartHomeCube(
                 api,
                 f"sensor.{id}_controller_cube_action",
+                set(),
             ),
             # Lights.
             SwitchLight(
                 api,
                 f"switch.{id}_light_neon_cactus",
+                {"ignore_virtual_light"}
             ),
             IkeaBulb(
                 api,
                 f"light.{id}_light_north",
+                set(),
             ),
             IkeaBulb(
                 api,
                 f"light.{id}_light_south",
+                set(),
             ),
         ]
 

@@ -34,21 +34,25 @@ class Hall(Room):
             InputButtonLightMax(
                 api,
                 f"input_button.{id}_light_max",
+                set(),
             ),
             # Input booleans.
             InputBooleanLightAutoSun(
                 api,
                 f"input_boolean.{id}_light_auto",
+                set(),
             ),
             # Controllers.
             IkeaSwitch(
                 api,
                 f"sensor.{id}_controller_ikea_switch_action",
+                set(),
             ),
             # Sensors.
             IkeaMotionSensor(
                 api,
                 f"binary_sensor.{id}_ir_by_rooms_occupancy",
+                set(),
                 {
                     IkeaMotionSensorStates.ON: self.event_IkeaMotionSensor_on,
                     IkeaMotionSensorStates.OFF: self.event_IkeaMotionSensor_off,
@@ -58,6 +62,7 @@ class Hall(Room):
             IkeaBulb(
                 api,
                 f"light.{id}_light_ceiling",
+                set(),
             ),
         ]
 

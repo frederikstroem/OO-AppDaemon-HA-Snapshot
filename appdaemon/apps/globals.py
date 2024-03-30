@@ -18,15 +18,17 @@ def decimal_to_octet_proportional(value):
 def decimal_to_custom_range_proportional(value, min_value, max_value):
     if not (-1.0 <= value <= 1.0):
         raise ValueError("Decimal value must be between -1.0 and 1.0")
+    if min_value > max_value:
+        raise ValueError("min_value must be less than or equal to max_value")
 
-    # Calculate the range between min_value and max_value
+    # Calculate the total range width
     range_width = max_value - min_value
 
-    # Adjust the value from the range of -1.0 to 1.0 to the custom range
-    proportional_value = int((value + 1.0) / 2.0 * range_width + min_value)
+    # Convert the decimal value to a proportional value in the range from min_value to max_value
+    proportional_value = int(value * range_width)
 
     # Clamp the value to the custom range
-    proportional_value = max(min(proportional_value, max_value), min_value)
+    proportional_value = max(min(proportional_value, range_width), -range_width)
 
     return proportional_value
 

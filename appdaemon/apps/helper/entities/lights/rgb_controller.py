@@ -11,8 +11,8 @@ from helper.entities.light import Light
 
 
 class RGBController(Light):
-    def __init__(self, api, ha_id):
-        super().__init__(api, ha_id)
+    def __init__(self, api, ha_id, flags: set):
+        super().__init__(api, ha_id, flags)
 
     def artifical_brightness_scale(self, brightness):
         if brightness > 100:

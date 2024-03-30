@@ -13,8 +13,8 @@ class InputBooleanLightAutoSun(InputBoolean):
         api: Instance of the Home Assistant API.
         ha_id: ID of the input boolean in Home Assistant.
     """
-    def __init__(self, api, ha_id: str):
-        super().__init__(api, ha_id, None)
+    def __init__(self, api, ha_id: str, flags: set):
+        super().__init__(api, ha_id, flags, None)
         self.api.run_at_sunrise(self.callback_sunrise)
         self.api.run_at_sunset(self.callback_sunset, offset = dt.timedelta(minutes = -45).total_seconds())
 

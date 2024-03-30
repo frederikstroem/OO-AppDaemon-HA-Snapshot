@@ -3,12 +3,12 @@ from helper.entity import Entity
 
 
 class Sensor(Entity):
-    def __init__(self, api, ha_id: str):
-        super().__init__(api, ha_id)
+    def __init__(self, api, ha_id: str, flags: set):
+        super().__init__(api, ha_id, flags)
 
 class DiscreteSensor(Sensor):
-    def __init__(self, api, ha_id: str, states_enum, event_map):
-        super().__init__(api, ha_id)
+    def __init__(self, api, ha_id: str, flags: set, states_enum, event_map):
+        super().__init__(api, ha_id, flags)
         self.states_enum = states_enum
         self.event_map = event_map
         self.api.listen_state(self.callback, self.ha_id)
@@ -26,8 +26,8 @@ class DiscreteSensor(Sensor):
                 self.api.log(f"Unknown state detected for {self.ha_id}: {new}.", log=self.room.log)
 
 class ContinuousSensor(Sensor):
-    def __init__(self, api, ha_id, event=None):
-        super().__init__(api, ha_id)
+    def __init__(self, api, ha_id, flags: set, event=None):
+        super().__init__(api, ha_id, flags)
         self.event = event
         if event is not None:
             self.api.listen_state(self.callback, self.ha_id)

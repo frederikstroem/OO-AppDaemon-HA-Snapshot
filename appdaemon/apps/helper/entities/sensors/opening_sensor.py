@@ -9,5 +9,5 @@ class OpeningSensorStates(Enum):
     OPEN = "on"
 
 class OpeningSensor(DiscreteSensor):
-    def __init__(self, api, ha_id, event_map):
-        super().__init__(api, ha_id, OpeningSensorStates, event_map)
+    def __init__(self, api, ha_id: str, flags: set, event_map):
+        super().__init__(api, ha_id, flags, OpeningSensorStates, event_map)

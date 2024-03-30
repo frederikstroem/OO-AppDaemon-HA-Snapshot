@@ -12,7 +12,7 @@ class IkeaRemoteActions(Enum):
     ARROW_RIGHT_CLICK = "arrow_right_click"
 
 class IkeaRemote(Controller):
-    def __init__(self, api, ha_id, action_map={}):
+    def __init__(self, api, ha_id: str, flags: set, action_map={}):
         default_action_map = {
             IkeaRemoteActions.TOGGLE: self.default_toggle,
             IkeaRemoteActions.BRIGHTNESS_DOWN_CLICK: self.default_brightness_down,
@@ -20,7 +20,7 @@ class IkeaRemote(Controller):
             IkeaRemoteActions.ARROW_LEFT_CLICK: self.default_arrow_left,
             IkeaRemoteActions.ARROW_RIGHT_CLICK: self.default_arrow_right,
         }
-        super().__init__(api, ha_id, IkeaRemoteActions, action_map, default_action_map)
+        super().__init__(api, ha_id, flags, IkeaRemoteActions, action_map, default_action_map)
 
     def default_toggle(self, ha_id):
         self.room.virtual_light.toggle()

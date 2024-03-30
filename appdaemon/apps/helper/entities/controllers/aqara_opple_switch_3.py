@@ -42,7 +42,7 @@ class AqaraOppleSwitch3Actions(Enum):
     BUTTON_6_RELEASE = "button_6_release"
 
 class AqaraOppleSwitch3(Controller):
-    def __init__(self, api, ha_id: str, action_map={}):
+    def __init__(self, api, ha_id: str, flags: set, action_map={}):
         default_action_map = {
             AqaraOppleSwitch3Actions.BUTTON_1_SINGLE: self.default_button_1_single,
             AqaraOppleSwitch3Actions.BUTTON_2_SINGLE: self.default_button_2_single,
@@ -51,7 +51,7 @@ class AqaraOppleSwitch3(Controller):
             AqaraOppleSwitch3Actions.BUTTON_6_SINGLE: self.default_button_6_single,
             AqaraOppleSwitch3Actions.BUTTON_6_DOUBLE: self.default_button_6_double,
         }
-        super().__init__(api, ha_id, AqaraOppleSwitch3Actions, action_map, default_action_map)
+        super().__init__(api, ha_id, flags, AqaraOppleSwitch3Actions, action_map, default_action_map)
 
     def default_button_1_single(self, ha_id):
         """Decrease temperature."""
@@ -79,6 +79,8 @@ class AqaraOppleSwitch3(Controller):
         self.room.virtual_light.toggle()
 
     def default_button_6_double(self, ha_id):
-        """Set virtual light to red and 1 brightness."""
+        """Toggle sleep mode."""
 
-        self.room.virtual_light.turn_on_with_brightness_and_rgb(1, [255, 0, 0])
+        input_boolean_sleep_mode = self.room.get_input_boolean_sleep_mode()
+        if input_boolean_sleep_mode is not None:
+            input_boolean_sleep_mode.toggle()

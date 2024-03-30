@@ -23,7 +23,7 @@ class AqaraSmartHomeModes(Enum):
     TEMP_KELVIN = "temp_kelvin"
 
 class AqaraSmartHomeCube(Controller):
-    def __init__(self, api, ha_id: str, action_map={}):
+    def __init__(self, api, ha_id: str, flags: set, action_map={}):
         default_action_map = {
             AqaraSmartHomeCubeActions.ROTATE_LEFT: self.default_rotate,
             AqaraSmartHomeCubeActions.ROTATE_RIGHT: self.default_rotate,
@@ -32,7 +32,7 @@ class AqaraSmartHomeCube(Controller):
             AqaraSmartHomeCubeActions.FLIP180: self.default_flip180,
             AqaraSmartHomeCubeActions.WAKEUP: self.default_wakeup,
         }
-        super().__init__(api, ha_id, AqaraSmartHomeCubeActions, action_map, default_action_map)
+        super().__init__(api, ha_id, flags, AqaraSmartHomeCubeActions, action_map, default_action_map)
         self.default_mode = AqaraSmartHomeModes.BRIGHTNESS
         self.mode = self.default_mode
         self.mode_timeout_handle = None # Handle for the timeout callback

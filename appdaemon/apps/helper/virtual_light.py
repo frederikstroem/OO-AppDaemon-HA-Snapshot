@@ -1,18 +1,21 @@
 from enum import Enum
 
 from globals import decimal_to_octet_proportional, decimal_to_custom_range_proportional
+# /helper/entities/ha_helpers/
+from helper.entities.ha_helpers.input_boolean import InputBooleanState
 
 class VirtualLightState(Enum):
     ON = "on"
     OFF = "off"
 
 class VirtualLight:
-    def __init__(self, api, ha_id, light_entities):
+    def __init__(self, api, ha_id, light_entities, input_boolean_sleep_mode=None):
         # Set attributes.
         self.api = api
         self.ha_id = ha_id
         self.room = None # Set post room initialisation.
         self.light_entities = light_entities
+        self.input_boolean_sleep_mode = input_boolean_sleep_mode # The sleep mode input boolean entity is optional on a per room basis.
 
         # Defaults.
         self.default_temp_kelvin = 3000
@@ -20,10 +23,12 @@ class VirtualLight:
         # Last on values.
         self.last_on_brightness = None
         self.last_on_temp_kelvin = None
+        self.last_on_rgb = None
 
         # Overwrite next on values.
         self.overwrite_next_on_brightness = None
         self.overwrite_next_on_temp_kelvin = None
+        self.overwrite_next_on_rgb = None
 
         # Register callback.
         self.api.listen_state(self.callback, self.ha_id, attribute="all")
@@ -61,22 +66,17 @@ class VirtualLight:
     def set_overwrite_next_on_temp_kelvin(self, temp_kelvin):
         self.overwrite_next_on_temp_kelvin = temp_kelvin
 
+    def set_overwrite_next_on_rgb(self, rgb):
+        self.overwrite_next_on_rgb = rgb
+
     ###################################
     ## Standard turn on/off methods. ##
     ###################################
     def turn_on(self):
-        if self.overwrite_next_on_brightness is not None and self.overwrite_next_on_temp_kelvin is not None:
-            self.turn_on_with_brightness_and_temp_kelvin(self.overwrite_next_on_brightness, self.overwrite_next_on_temp_kelvin)
-        elif self.overwrite_next_on_brightness is not None:
-            self.turn_on_with_brightness(self.overwrite_next_on_brightness)
-        else:
-            self.api.turn_on(self.ha_id)
+        self.api.turn_on(self.ha_id)
 
     def turn_on_with_brightness(self, brightness):
-        if self.overwrite_next_on_temp_kelvin is not None:
-            self.turn_on_with_brightness_and_temp_kelvin(brightness, self.overwrite_next_on_temp_kelvin)
-        else:
-            self.api.turn_on(self.ha_id, brightness=brightness)
+        self.api.turn_on(self.ha_id, brightness=brightness)
 
     def turn_on_with_brightness_and_temp_kelvin(self, brightness, temp_kelvin):
         self.api.turn_on(self.ha_id, brightness=brightness, color_temp_kelvin=temp_kelvin)
@@ -147,6 +147,36 @@ class VirtualLight:
         self.turn_on_with_temp_kelvin_delta(decimal_to_custom_range_proportional(temp_kelvin_delta_decimal, self.get_min_temp_kelvin(), self.get_max_temp_kelvin()))
 
     ######################
+    ## Handler methods. ##
+    ######################
+    def handle_sleep_mode(self):
+        if self.input_boolean_sleep_mode is not None: # If sleep mode is not set for the room, do nothing.
+            # Get states.
+            virtual_light_state = self.get_state()
+            sleep_mode_state = self.input_boolean_sleep_mode.get_state()
+            # Sleep mode brightness and RGB.
+            sleep_mode_brightness = 1
+            sleep_mode_rgb = [255, 0, 0]
+            # Wake up brightness and temp kelvin.
+            wake_up_brightness = decimal_to_octet_proportional(0.35)
+            wake_up_temp_kelvin = self.default_temp_kelvin
+            # Sleep mode logic.
+            if virtual_light_state == VirtualLightState.ON:
+                if sleep_mode_state == InputBooleanState.ON:
+                    self.turn_on_with_brightness_and_rgb(sleep_mode_brightness, sleep_mode_rgb)
+                else:
+                    self.turn_on_with_brightness_and_temp_kelvin(wake_up_brightness, wake_up_temp_kelvin)
+            elif virtual_light_state == VirtualLightState.OFF:
+                if sleep_mode_state == InputBooleanState.ON:
+                    self.overwrite_next_on_brightness = sleep_mode_brightness
+                    self.overwrite_next_on_temp_kelvin = None
+                    self.overwrite_next_on_rgb = sleep_mode_rgb
+                else:
+                    self.overwrite_next_on_brightness = wake_up_brightness
+                    self.overwrite_next_on_temp_kelvin = wake_up_temp_kelvin
+                    self.overwrite_next_on_rgb = None
+
+    ######################
     ## Callback method. ##
     ######################
     def callback(self, entity, attribute, old, new, kwargs):
@@ -158,47 +188,82 @@ class VirtualLight:
                 state == VirtualLightState.ON and
                 new["attributes"]["brightness"] is not None # If brightness is None, virtual light should not be considered on. Next elif will handle this.
             ):
-                self.api.log("Virtual light turned on.", log=self.room.log)
+                if (
+                    self.overwrite_next_on_brightness is not None or
+                    self.overwrite_next_on_temp_kelvin is not None or
+                    self.overwrite_next_on_rgb is not None
+                ):
+                    self.api.log("Virtual light turned on with overwrites.", log=self.room.log)
 
-                # Update last on values.
-                self.last_on_brightness = new["attributes"]["brightness"]
-                self.last_on_temp_kelvin = new["attributes"]["color_temp_kelvin"]
+                    # Create temporary variables.
+                    overwrite_next_on_brightness = self.overwrite_next_on_brightness
+                    overwrite_next_on_temp_kelvin = self.overwrite_next_on_temp_kelvin
+                    overwrite_next_on_rgb = self.overwrite_next_on_rgb
 
-                # Update light entities.
-                for light_entity in self.light_entities:
-                    # Walk down though priority list of attributes.
-                    if ( # Kelvin temperature takes precedence over RGB.
-                        new["attributes"]["color_temp_kelvin"] is not None and
-                        hasattr(light_entity, "turn_on_with_brightness_and_temp_kelvin")
-                    ):
-                        light_entity.turn_on_with_brightness_and_temp_kelvin(
-                            new["attributes"]["brightness"],
-                            new["attributes"]["color_temp_kelvin"]
-                        )
-                    elif ( # If no Kelvin temperature is available, use RGB.
-                        new["attributes"]["rgb_color"] is not None and
-                        hasattr(light_entity, "turn_on_with_brightness_and_rgb")
-                    ):
-                        light_entity.turn_on_with_brightness_and_rgb(
-                            new["attributes"]["brightness"],
-                            new["attributes"]["rgb_color"]
-                        )
-                    elif ( # If no RGB is available, use brightness.
-                        hasattr(light_entity, "turn_on_with_brightness")
-                    ):
-                        light_entity.turn_on_with_brightness(new["attributes"]["brightness"])
-                    elif ( # If no brightness is available, just turn on, but only at ~100% brightness and above 2900K.
-                        new["attributes"]["brightness"] > 247 and
-                        new["attributes"]["color_temp_kelvin"] is not None and
-                        new["attributes"]["color_temp_kelvin"] > 2900
-                    ):
-                        light_entity.turn_on()
-                    else: # If no requirements are met, turn off.
-                        light_entity.turn_off()
+                    # Clear overwrite next on values.
+                    self.overwrite_next_on_brightness = None
+                    self.overwrite_next_on_temp_kelvin = None
+                    self.overwrite_next_on_rgb = None
 
-                # Clear overwrite next on values.
-                self.overwrite_next_on_brightness = None
-                self.overwrite_next_on_temp_kelvin = None
+                    if overwrite_next_on_brightness is not None and overwrite_next_on_temp_kelvin is not None:
+                        self.turn_on_with_brightness_and_temp_kelvin(overwrite_next_on_brightness, overwrite_next_on_temp_kelvin)
+                    elif overwrite_next_on_brightness is not None and overwrite_next_on_rgb is not None:
+                        self.turn_on_with_brightness_and_rgb(overwrite_next_on_brightness, overwrite_next_on_rgb)
+                    elif overwrite_next_on_brightness is not None:
+                        self.turn_on_with_brightness(overwrite_next_on_brightness)
+                    else:
+                        # Something went wrong, just turn on.
+                        self.turn_on()
+
+                else:
+                    self.api.log("Virtual light turned on.", log=self.room.log)
+
+                    # Update last on values.
+                    self.last_on_brightness = new["attributes"]["brightness"]
+                    self.last_on_temp_kelvin = new["attributes"]["color_temp_kelvin"]
+                    self.last_on_rgb = new["attributes"]["rgb_color"]
+
+                    # Update light entities.
+                    for light_entity in self.light_entities:
+                        # Walk down though priority list of attributes.
+                        if (   # If ignore_virtual_light flag is set, do nothing.
+                            light_entity.has_flag("ignore_virtual_light")
+                        ):
+                            pass
+                        elif ( # If sleep_light flag is not set and sleep mode is on, turn off the light entity.
+                            light_entity.has_flag("sleep_light") is False and
+                            self.input_boolean_sleep_mode is not None and # If sleep mode is not set for the room, do nothing.
+                            self.input_boolean_sleep_mode.get_state() == InputBooleanState.ON
+                        ):
+                            light_entity.turn_off()
+                        elif ( # Kelvin temperature takes precedence over RGB.
+                            new["attributes"]["color_temp_kelvin"] is not None and
+                            hasattr(light_entity, "turn_on_with_brightness_and_temp_kelvin")
+                        ):
+                            light_entity.turn_on_with_brightness_and_temp_kelvin(
+                                new["attributes"]["brightness"],
+                                new["attributes"]["color_temp_kelvin"]
+                            )
+                        elif ( # If no Kelvin temperature is available, use RGB.
+                            new["attributes"]["rgb_color"] is not None and
+                            hasattr(light_entity, "turn_on_with_brightness_and_rgb")
+                        ):
+                            light_entity.turn_on_with_brightness_and_rgb(
+                                new["attributes"]["brightness"],
+                                new["attributes"]["rgb_color"]
+                            )
+                        elif ( # If no RGB is available, use brightness.
+                            hasattr(light_entity, "turn_on_with_brightness")
+                        ):
+                            light_entity.turn_on_with_brightness(new["attributes"]["brightness"])
+                        elif ( # If no brightness is available, just turn on, but only at ~100% brightness and above 2900K.
+                            new["attributes"]["brightness"] > 247 and
+                            new["attributes"]["color_temp_kelvin"] is not None and
+                            new["attributes"]["color_temp_kelvin"] > 2900
+                        ):
+                            light_entity.turn_on()
+                        else:  # If no requirements are met, just turn off.
+                            light_entity.turn_off()
 
             elif (
                 state == VirtualLightState.ON and
@@ -212,4 +277,6 @@ class VirtualLight:
                 self.api.log("Virtual light turned off.", log=self.room.log)
 
                 for light_entity in self.light_entities:
-                    light_entity.turn_off()
+                    # Turn off all light entities, unless the ignore_virtual_light flag is set for the light entity.
+                    if light_entity.has_flag("ignore_virtual_light") is False:
+                        light_entity.turn_off()
