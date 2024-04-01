@@ -10,6 +10,7 @@ from helper.entities.light import Light
 # /helper/entities/controllers/
 from helper.entities.controllers.ikea_switch import IkeaSwitch
 # /helper/entities/ha_helpers/
+from helper.entities.ha_helpers.input_boolean import InputBooleanState
 from helper.entities.ha_helpers.input_boolean_light_auto_sun import InputBooleanLightAutoSun
 from helper.entities.ha_helpers.input_button_light_max import InputButtonLightMax
 # /helper/entities/lights/
@@ -103,10 +104,10 @@ class Hall(Room):
     ################
     def event_IkeaMotionSensor_on(self, ha_id):
         self.api.log("Motion detected, turning on lights.", log=self.log)
-        if self.get_entity_by_ha_id("input_boolean.hall_light_auto").get_state() == "on":
+        if self.get_entity_by_ha_id("input_boolean.hall_light_auto").get_state() == InputBooleanState.ON:
             self.virtual_light.turn_on()
 
     def event_IkeaMotionSensor_off(self, ha_id):
         self.api.log("No motion detected, turning off lights.", log=self.log)
-        if self.get_entity_by_ha_id("input_boolean.hall_light_auto").get_state() == "on":
+        if self.get_entity_by_ha_id("input_boolean.hall_light_auto").get_state() == InputBooleanState.ON:
             self.virtual_light.turn_off()
